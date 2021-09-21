@@ -28,52 +28,32 @@
 
 /*
  * @author Enrique Fernandez
- * @author Jeremie Deray
- * @author Brighten Lee
+ * @author Siegfried Gevatter
+ * @author Hongrui Zheng
  */
 
-#ifndef TWIST_MUX__TWIST_MUX_DIAGNOSTICS_HPP_
-#define TWIST_MUX__TWIST_MUX_DIAGNOSTICS_HPP_
+#ifndef ACKERMANN_MUX__UTILS_HPP_
+#define ACKERMANN_MUX__UTILS_HPP_
 
-#include <twist_mux/twist_mux_diagnostics_status.hpp>
+// This could be taken from #include <boost/algorithm/clamp.hpp>
+// but it seems that all versions of Boost have it.
 
-#include <diagnostic_updater/diagnostic_updater.hpp>
-
-#include <memory>
-
-namespace twist_mux
+/**
+ * @brief Clamp a value to the range [min, max]
+ * @param x Value
+ * @param min Min value of the range [min, max]
+ * @param max Max value of the range [min, max]
+ * @return Value clamped to the range [min, max]
+ */
+template<typename T>
+static T clamp(T x, T min, T max)
 {
-class TwistMuxDiagnostics
-{
-public:
-  typedef TwistMuxDiagnosticsStatus status_type;
+  if (x < min) {
+    x = min;
+  } else if (max < x) {
+    x = max;
+  }
+  return x;
+}
 
-  static constexpr double MAIN_LOOP_TIME_MIN = 0.2;   // [s]
-  static constexpr double READING_AGE_MIN = 3.0;     // [s]
-
-  explicit TwistMuxDiagnostics(TwistMux * mux);
-  virtual ~TwistMuxDiagnostics() = default;
-
-  void diagnostics(diagnostic_updater::DiagnosticStatusWrapper & stat);
-
-  void update();
-
-  void updateStatus(const status_type::ConstPtr & status);
-
-private:
-  /**
-   * @brief Levels
-   */
-  enum
-  {
-    OK = diagnostic_msgs::msg::DiagnosticStatus::OK,
-    WARN = diagnostic_msgs::msg::DiagnosticStatus::WARN,
-    ERROR = diagnostic_msgs::msg::DiagnosticStatus::ERROR
-  };
-
-  std::shared_ptr<diagnostic_updater::Updater> diagnostic_;
-  std::shared_ptr<status_type> status_;
-};
-}  // namespace twist_mux
-
-#endif  // TWIST_MUX__TWIST_MUX_DIAGNOSTICS_HPP_
+#endif  // ACKERMANN_MUX__UTILS_HPP_

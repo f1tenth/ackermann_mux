@@ -27,44 +27,52 @@
 // POSSIBILITY OF SUCH DAMAGE.
 
 /*
- * @author Paul Mathieu
+ * @author Enrique Fernandez
  * @author Jeremie Deray
+ * @author Brighten Lee
+ * @author Hongrui Zheng
  */
 
-#ifndef TWIST_MUX__PARAMS_HELPERS_HPP_
-#define TWIST_MUX__PARAMS_HELPERS_HPP_
+#ifndef ACKERMANN_MUX__ACKERMANN_MUX_DIAGNOSTICS_STATUS_HPP_
+#define ACKERMANN_MUX__ACKERMANN_MUX_DIAGNOSTICS_STATUS_HPP_
+
+#include <ackermann_mux/ackermann_mux.hpp>
+#include <ackermann_mux/topic_handle.hpp>
 
 #include <rclcpp/rclcpp.hpp>
 
 #include <memory>
-#include <sstream>
-#include <string>
 
-namespace twist_mux
+namespace ackermann_mux
 {
-class ParamsHelperException : public std::runtime_error
+struct AckermannMuxDiagnosticsStatus
 {
-public:
-  explicit ParamsHelperException(const std::string & what)
-  : std::runtime_error(what)
+  typedef std::shared_ptr<AckermannMuxDiagnosticsStatus> Ptr;
+  typedef std::shared_ptr<const AckermannMuxDiagnosticsStatus> ConstPtr;
+
+  double reading_age;
+  rclcpp::Time last_loop_update;
+  double main_loop_time;
+
+  LockTopicHandle::priority_type priority;
+
+  std::shared_ptr<AckermannMux::velocity_topic_container> velocity_hs;
+  std::shared_ptr<AckermannMux::lock_topic_container> lock_hs;
+
+  AckermannMuxDiagnosticsStatus()
+  : reading_age(0),
+    last_loop_update(rclcpp::Clock().now()),
+    main_loop_time(0),
+    priority(0)
   {
+    velocity_hs = std::make_shared<AckermannMux::velocity_topic_container>();
+    lock_hs = std::make_shared<AckermannMux::lock_topic_container>();
   }
 };
 
-template<class T>
-void fetch_param(std::shared_ptr<rclcpp::Node> nh, const std::string & param_name, T & output)
-{
-  rclcpp::Parameter param;
-  if (!nh->get_parameter(param_name, param)) {
-    std::ostringstream err_msg;
-    err_msg << "could not load parameter '" << param_name << "'. (namespace: " <<
-      nh->get_namespace() << ")";
-    throw ParamsHelperException(err_msg.str());
-  }
+typedef AckermannMuxDiagnosticsStatus::Ptr AckermannMuxDiagnosticsStatusPtr;
+typedef AckermannMuxDiagnosticsStatus::ConstPtr AckermannMuxDiagnosticsStatusConstPtr;
 
-  output = param.get_value<T>();
-}
+}  // namespace ackermann_mux
 
-}  // namespace twist_mux
-
-#endif  // TWIST_MUX__PARAMS_HELPERS_HPP_
+#endif  // ACKERMANN_MUX__ACKERMANN_MUX_DIAGNOSTICS_STATUS_HPP_

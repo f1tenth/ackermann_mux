@@ -27,56 +27,45 @@
 // POSSIBILITY OF SUCH DAMAGE.
 
 /*
- * @author Enrique Fernandez
+ * @author Paul Mathieu
  * @author Jeremie Deray
- * @author Brighten Lee
+ * @author Hongrui Zheng
  */
 
-#ifndef TWIST_MUX__TWIST_MUX_DIAGNOSTICS_STATUS_HPP_
-#define TWIST_MUX__TWIST_MUX_DIAGNOSTICS_STATUS_HPP_
-
-#include <twist_mux/twist_mux.hpp>
-#include <twist_mux/topic_handle.hpp>
+#ifndef ACKERMANN_MUX__PARAMS_HELPERS_HPP_
+#define ACKERMANN_MUX__PARAMS_HELPERS_HPP_
 
 #include <rclcpp/rclcpp.hpp>
 
 #include <memory>
+#include <sstream>
+#include <string>
 
-namespace twist_mux
+namespace ackermann_mux
 {
-struct TwistMuxDiagnosticsStatus
+class ParamsHelperException : public std::runtime_error
 {
-  typedef std::shared_ptr<TwistMuxDiagnosticsStatus> Ptr;
-  typedef std::shared_ptr<const TwistMuxDiagnosticsStatus> ConstPtr;
-
-  double reading_age;
-  rclcpp::Time last_loop_update;
-  double main_loop_time;
-
-  LockTopicHandle::priority_type priority;
-
-  bool use_stamped;
-
-  std::shared_ptr<TwistMux::velocity_topic_container> velocity_hs;
-  std::shared_ptr<TwistMux::velocity_stamped_topic_container> velocity_stamped_hs;
-  std::shared_ptr<TwistMux::lock_topic_container> lock_hs;
-
-  TwistMuxDiagnosticsStatus()
-  : reading_age(0),
-    last_loop_update(rclcpp::Clock().now()),
-    main_loop_time(0),
-    priority(0),
-    use_stamped(true)
+public:
+  explicit ParamsHelperException(const std::string & what)
+  : std::runtime_error(what)
   {
-    velocity_hs = std::make_shared<TwistMux::velocity_topic_container>();
-    velocity_stamped_hs = std::make_shared<TwistMux::velocity_stamped_topic_container>();
-    lock_hs = std::make_shared<TwistMux::lock_topic_container>();
   }
 };
 
-typedef TwistMuxDiagnosticsStatus::Ptr TwistMuxDiagnosticsStatusPtr;
-typedef TwistMuxDiagnosticsStatus::ConstPtr TwistMuxDiagnosticsStatusConstPtr;
+template<class T>
+void fetch_param(std::shared_ptr<rclcpp::Node> nh, const std::string & param_name, T & output)
+{
+  rclcpp::Parameter param;
+  if (!nh->get_parameter(param_name, param)) {
+    std::ostringstream err_msg;
+    err_msg << "could not load parameter '" << param_name << "'. (namespace: " <<
+      nh->get_namespace() << ")";
+    throw ParamsHelperException(err_msg.str());
+  }
 
-}  // namespace twist_mux
+  output = param.get_value<T>();
+}
 
-#endif  // TWIST_MUX__TWIST_MUX_DIAGNOSTICS_STATUS_HPP_
+}  // namespace ackermann_mux
+
+#endif  // ACKERMANN_MUX__PARAMS_HELPERS_HPP_

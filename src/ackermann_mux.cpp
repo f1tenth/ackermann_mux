@@ -30,14 +30,15 @@
  * @author Enrique Fernandez
  * @author Siegfried Gevatter
  * @author Jeremie Deray
+ * @author Hongrui Zheng
  */
 
-#include <twist_mux/twist_mux.hpp>
-#include <twist_mux/topic_handle.hpp>
-#include <twist_mux/twist_mux_diagnostics.hpp>
-#include <twist_mux/twist_mux_diagnostics_status.hpp>
-#include <twist_mux/utils.hpp>
-#include <twist_mux/params_helpers.hpp>
+#include <ackermann_mux/ackermann_mux.hpp>
+#include <ackermann_mux/topic_handle.hpp>
+#include <ackermann_mux/ackermann_mux_diagnostics.hpp>
+#include <ackermann_mux/ackermann_mux_diagnostics_status.hpp>
+#include <ackermann_mux/utils.hpp>
+#include <ackermann_mux/params_helpers.hpp>
 
 #include <list>
 #include <memory>
@@ -51,24 +52,25 @@
  * @return true is any of the absolute velocity components has increased
  */
 bool hasIncreasedAbsVelocity(
-  const geometry_msgs::msg::Twist & old_twist,
-  const geometry_msgs::msg::Twist & new_twist)
+  const ackermann_msgs::msg::AckermannDriveStamped & old_drive,
+  const ackermann_msgs::msg::AckermannDriveStamped & new_drive)
 {
-  const auto old_linear_x = std::abs(old_twist.linear.x);
-  const auto new_linear_x = std::abs(new_twist.linear.x);
+  const auto old_linear_x = std::abs(old_drive.drive.speed);
+  const auto new_linear_x = std::abs(new_drive.drive.speed);
 
-  const auto old_angular_z = std::abs(old_twist.angular.z);
-  const auto new_angular_z = std::abs(new_twist.angular.z);
+  // const auto old_angular_z = std::abs(old_drive.drive.angular.z);
+  // const auto new_angular_z = std::abs(new_drive.drive.angular.z);
 
-  return (old_linear_x < new_linear_x) || (old_angular_z < new_angular_z);
+  // return (old_linear_x < new_linear_x) || (old_angular_z < new_angular_z);
+  return (old_linear_x < new_linear_x);
 }
 
-namespace twist_mux
+namespace ackermann_mux
 {
 // see e.g. https://stackoverflow.com/a/40691657
-constexpr std::chrono::duration<int64_t> TwistMux::DIAGNOSTICS_PERIOD;
+constexpr std::chrono::duration<int64_t> AckermannMux::DIAGNOSTICS_PERIOD;
 
-TwistMux::TwistMux()
+AckermannMux::AckermannMux()
 : Node("twist_mux", "",
     rclcpp::NodeOptions().allow_undeclared_parameters(
       true).automatically_declare_parameters_from_overrides(true))

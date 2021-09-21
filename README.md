@@ -1,9 +1,10 @@
-twist_mux
+ackermann_mux
 =========
 
-Twist multiplexer with support for
-[geometry_msgs/Twist](http://docs.ros.org/api/geometry_msgs/html/msg/Twist.html)
+based on twist_mux
+Ackermann multiplexer with support for
+[ackermann_msgs/AckermannDriveStamped](http://docs.ros.org/api/ackermann_msgs/html/msg/AckermannDriveStamped.html)
 topics and
 [std_msgs/Bool](http://docs.ros.org/api/std_msgs/html/msg/Bool.html) locks with priorities.
 
-See [documentation](http://wiki.ros.org/twist_mux).
+<!-- See [documentation](http://wiki.ros.org/twist_mux). -->

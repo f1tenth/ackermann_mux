@@ -72,7 +72,7 @@ public:
 
   void init();
 
-  bool hasPriority(const VelocityTopicHandle & twist);
+  bool hasPriority(const VelocityTopicHandle & ackermann);
 
   void publishAckermann(const ackermann_msgs::msg::AckermannDriveStamped::ConstSharedPtr & msg);
 

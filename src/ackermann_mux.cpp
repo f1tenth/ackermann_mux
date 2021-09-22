@@ -47,8 +47,8 @@
 /**
  * @brief hasIncreasedAbsVelocity Check if the absolute velocity has increased
  * in any of the components: linear (abs(x)) or angular (abs(yaw))
- * @param old_twist Old velocity
- * @param new_twist New velocity
+ * @param old_drive Old velocity
+ * @param new_drive New velocity
  * @return true is any of the absolute velocity components has increased
  */
 bool hasIncreasedAbsVelocity(
@@ -71,59 +71,31 @@ namespace ackermann_mux
 constexpr std::chrono::duration<int64_t> AckermannMux::DIAGNOSTICS_PERIOD;
 
 AckermannMux::AckermannMux()
-: Node("twist_mux", "",
+: Node("ackermann_mux", "",
     rclcpp::NodeOptions().allow_undeclared_parameters(
       true).automatically_declare_parameters_from_overrides(true))
 {
 }
 
-void TwistMux::init()
+void AckermannMux::init()
 {
-  // Get use stamped parameter
-  bool use_stamped = true;
-
-  auto nh = std::shared_ptr<rclcpp::Node>(this, [](rclcpp::Node *) {});
-
-  if (!nh->get_parameter("use_stamped", use_stamped))
-    RCLCPP_INFO(nh->get_logger(), "\"use_stamped\" is not declared as parameter, defaulting to \"true\".");
-
   /// Get topics and locks:
-  if(use_stamped)
-  {
-    velocity_stamped_hs_ = std::make_shared<velocity_stamped_topic_container>();
-    getTopicHandles("topics", *velocity_stamped_hs_);
-  }
-  else
-  {
-    velocity_hs_ = std::make_shared<velocity_topic_container>();
-    getTopicHandles("topics", *velocity_hs_);
-  }
+  velocity_hs_ = std::make_shared<velocity_topic_container>();
+  getTopicHandles("topics", *velocity_hs_);
   lock_hs_ = std::make_shared<lock_topic_container>();
   getTopicHandles("locks", *lock_hs_);
 
   /// Publisher for output topic:
-  if(use_stamped)
-  {
-    cmd_pub_stamped_ =
-      this->create_publisher<geometry_msgs::msg::TwistStamped>(
-        "cmd_vel_out",
-        rclcpp::QoS(rclcpp::KeepLast(1)));
-  }
-  else
-  {
-    cmd_pub_ =
-      this->create_publisher<geometry_msgs::msg::Twist>(
-      "cmd_vel_out",
-      rclcpp::QoS(rclcpp::KeepLast(1)));
-  }
+  cmd_pub_ =
+    this->create_publisher<ackermann_msgs::msg::AckermannDriveStamped>(
+    "ackermann_drive_out",
+    rclcpp::QoS(rclcpp::KeepLast(1)));
 
   /// Diagnostics:
   diagnostics_ = std::make_shared<diagnostics_type>(this);
   status_ = std::make_shared<status_type>();
   status_->velocity_hs = velocity_hs_;
-  status_->velocity_stamped_hs = velocity_stamped_hs_;
   status_->lock_hs = lock_hs_;
-  status_->use_stamped = use_stamped;
 
   diagnostics_timer_ = this->create_wall_timer(
     DIAGNOSTICS_PERIOD, [this]() -> void {
@@ -131,7 +103,7 @@ void TwistMux::init()
     });
 }
 
-void TwistMux::updateDiagnostics()
+void AckermannMux::updateDiagnostics()
 {
   status_->priority = getLockPriority();
   RCLCPP_DEBUG(get_logger(), "updateDiagnostics: lol");
@@ -139,18 +111,13 @@ void TwistMux::updateDiagnostics()
   RCLCPP_DEBUG(get_logger(), "returned from updateStatus");
 }
 
-void TwistMux::publishTwist(const geometry_msgs::msg::Twist::ConstSharedPtr & msg)
+void AckermannMux::publishAckermann(const ackermann_msgs::msg::AckermannDriveStamped::ConstSharedPtr & msg)
 {
   cmd_pub_->publish(*msg);
 }
 
-void TwistMux::publishTwistStamped(const geometry_msgs::msg::TwistStamped::ConstSharedPtr & msg)
-{
-  cmd_pub_stamped_->publish(*msg);
-}
-
 template<typename T>
-void TwistMux::getTopicHandles(const std::string & param_name, std::list<T> & topic_hs)
+void AckermannMux::getTopicHandles(const std::string & param_name, std::list<T> & topic_hs)
 {
   RCLCPP_DEBUG(get_logger(), "getTopicHandles: %s", param_name.c_str());
 
@@ -182,7 +149,7 @@ void TwistMux::getTopicHandles(const std::string & param_name, std::list<T> & to
   }
 }
 
-int TwistMux::getLockPriority()
+int AckermannMux::getLockPriority()
 {
   LockTopicHandle::priority_type priority = 0;
 
@@ -202,7 +169,7 @@ int TwistMux::getLockPriority()
   return priority;
 }
 
-bool TwistMux::hasPriority(const VelocityTopicHandle & twist)
+bool AckermannMux::hasPriority(const VelocityTopicHandle & ackermann)
 {
   const auto lock_priority = getLockPriority();
 
@@ -221,30 +188,7 @@ bool TwistMux::hasPriority(const VelocityTopicHandle & twist)
     }
   }
 
-  return twist.getName() == velocity_name;
+  return ackermann.getName() == velocity_name;
 }
 
-
-bool TwistMux::hasPriorityStamped(const VelocityStampedTopicHandle & twist)
-{
-  const auto lock_priority = getLockPriority();
-
-  LockTopicHandle::priority_type priority = 0;
-  std::string velocity_name = "NULL";
-
-  /// max_element on the priority of velocity topic handles satisfying
-  /// that is NOT masked by the lock priority:
-  for (const auto & velocity_stamped_h : *velocity_stamped_hs_) {
-    if (!velocity_stamped_h.isMasked(lock_priority)) {
-      const auto velocity_priority = velocity_stamped_h.getPriority();
-      if (priority < velocity_priority) {
-        priority = velocity_priority;
-        velocity_name = velocity_stamped_h.getName();
-      }
-    }
-  }
-
-  return twist.getName() == velocity_name;
-}
-
-}  // namespace twist_mux
+}  // namespace ackermann_mux

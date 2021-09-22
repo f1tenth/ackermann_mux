@@ -30,9 +30,10 @@
  * @author Enrique Fernandez
  * @author Siegfried Gevatter
  * @author Jeremie Deray
+ * @author Hongrui Zheng
  */
 
-#include <twist_mux/twist_mux.hpp>
+#include <ackermann_mux/ackermann_mux.hpp>
 
 #include <memory>
 
@@ -40,11 +41,11 @@ int main(int argc, char * argv[])
 {
   rclcpp::init(argc, argv);
 
-  auto twist_mux_node = std::make_shared<twist_mux::TwistMux>();
+  auto ackermann_mux_node = std::make_shared<ackermann_mux::AckermannMux>();
 
-  twist_mux_node->init();
+  ackermann_mux_node->init();
 
-  rclcpp::spin(twist_mux_node);
+  rclcpp::spin(ackermann_mux_node);
 
   rclcpp::shutdown();
 

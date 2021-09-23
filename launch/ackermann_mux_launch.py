@@ -47,15 +47,15 @@ def generate_launch_description():
             description='Default joystick config file'),
         DeclareLaunchArgument(
             'cmd_vel_out',
-            default_value='twist_mux/cmd_vel',
+            default_value='ackermann_mux/cmd_vel',
             description='cmd vel output topic'),
         DeclareLaunchArgument(
             'use_sim_time',
             default_value='False',
             description='Use simulation time'),
         Node(
-            package='twist_mux',
-            executable='twist_mux',
+            package='ackermann_mux',
+            executable='ackermann_mux',
             output='screen',
             remappings={('/cmd_vel_out', LaunchConfiguration('cmd_vel_out'))},
             parameters=[
@@ -64,17 +64,7 @@ def generate_launch_description():
                 LaunchConfiguration('config_topics')]
         ),
         Node(
-            package='twist_mux',
-            executable='twist_marker',
-            output='screen',
-            remappings={('/twist', LaunchConfiguration('cmd_vel_out'))},
-            parameters=[{
-                'use_sim_time': LaunchConfiguration('use_sim_time'),
-                'frame_id': 'base_link',
-                'scale': 1.0,
-                'vertical_position': 2.0}]),
-        Node(
-            package='twist_mux',
+            package='ackermann_mux',
             executable='joystick_relay.py',
             output='screen',
             remappings={('joy_vel_in', 'input_joy/cmd_vel'),

@@ -88,7 +88,7 @@ void AckermannMux::init()
   /// Publisher for output topic:
   cmd_pub_ =
     this->create_publisher<ackermann_msgs::msg::AckermannDriveStamped>(
-    "ackermann_drive_out",
+    "ackermann_cmd",
     rclcpp::QoS(rclcpp::KeepLast(1)));
 
   /// Diagnostics:

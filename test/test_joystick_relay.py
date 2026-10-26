@@ -40,7 +40,7 @@ PRIORITY = True
 def generate_test_description():
 
     joystick_relay = Node(
-      package='twist_mux',
+      package='ackermann_mux',
       executable='joystick_relay.py',
       output='screen',
       parameters=[{
